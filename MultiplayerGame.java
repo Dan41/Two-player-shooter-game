@@ -31,10 +31,11 @@ public class MultiplayerGame extends Application {
 	private AnimationTimer right2;
 	private AnimationTimer left2;
 	
+	private int translate = 4;
+	
 	//Bullet
 	private AnimationTimer bulletMotion;
-	
-	private int translate = 4;
+	private int bulletSpeed = 9;
 	
 	public Parent createContent() {
 		root.setPrefSize(800, 600);
@@ -163,7 +164,7 @@ public class MultiplayerGame extends Application {
 		
 		bulletMotion = new AnimationTimer() {
 			public void handle(long now) {
-				circle.setTranslateX(circle.getTranslateX() + 9);
+				circle.setTranslateX(circle.getTranslateX() + bulletSpeed);
 			}
 		};
 		
@@ -185,7 +186,7 @@ public class MultiplayerGame extends Application {
 		
 		bulletMotion = new AnimationTimer() {
 			public void handle(long now) {
-				circle.setTranslateX(circle.getTranslateX() - 9);
+				circle.setTranslateX(circle.getTranslateX() - bulletSpeed);
 			}
 		};
 		
