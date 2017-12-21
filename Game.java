@@ -1,4 +1,4 @@
-package javaFX;
+package shooterGame;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -11,15 +11,19 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-public class MultiplayerGame extends Application {
+public class Game extends Application {
 	
 	Pane root = new Pane();
 	
 	private Player player1 = new Player("Dan");
 	private Player player2 = new Player("Irene");
+	
+	private HealthBar healthBar1 = new HealthBar(Color.LIME);
+	private HealthBar healthBar2 = new HealthBar(Color.LIME);
 	
 	private AnimationTimer up;
 	private AnimationTimer down;
@@ -37,6 +41,10 @@ public class MultiplayerGame extends Application {
 	private AnimationTimer bulletMotion;
 	private int bulletSpeed = 9;
 	
+	AnimationTimer winAnimation;
+	
+	private boolean playable = true;
+	
 	public Parent createContent() {
 		root.setPrefSize(800, 600);
 		
@@ -45,12 +53,30 @@ public class MultiplayerGame extends Application {
 		player1.player.setFill(Color.DODGERBLUE);
 		player1.setTranslateY(300 - player1.getHeight() / 2);
 		player1.setTranslateX(50);
-		player1.blaster.setTranslateX(player1.player.getTranslateX() + 32);
+		player1.blaster.setTranslateX(player1.player.getTranslateX() + 27);
 		
 		player2.player.setFill(Color.RED);
 		player2.setTranslateY(300 - player2.getHeight() / 2);
 		player2.setTranslateX(710);
-		player2.blaster.setTranslateX(player2.player.getTranslateX() - 33);
+		player2.blaster.setTranslateX(player2.player.getTranslateX() - 28);
+		
+		healthBar1.setTranslateX(100);
+		healthBar1.setTranslateY(25);
+		
+		healthBar2.setTranslateX(500);
+		healthBar2.setTranslateY(25);
+		
+		Text healthText1 = new Text("Health:");
+		Text healthText2 = new Text("Health:");
+		healthText1.setFill(Color.WHITE);
+		healthText2.setFill(Color.WHITE);
+		healthText1.setFont(Font.font(18));
+		healthText2.setFont(Font.font(18));
+		healthText2.setFill(Color.WHITE);
+		healthText1.setX(30);
+		healthText1.setY(43);
+		healthText2.setX(430);
+		healthText2.setY(43);
 		
 		Line line = new Line();
 		line.setStartX(400);
@@ -60,7 +86,7 @@ public class MultiplayerGame extends Application {
 		line.setStrokeWidth(5);
 		line.setStroke(Color.WHITE);
 		
-		root.getChildren().addAll(background, player1, player2, line);
+		root.getChildren().addAll(background, healthBar1, healthBar2, healthText1, healthText2, player1, player2, line);
 		
 		up = new AnimationTimer() {
 			public void handle(long now) {
@@ -86,7 +112,7 @@ public class MultiplayerGame extends Application {
 		
 		right = new AnimationTimer() {
 			public void handle(long now) {
-				if (player1.getTranslateX() >= 332) {
+				if (player1.getTranslateX() >= 342) {
 					right.stop();
 				}
 				else {
@@ -141,7 +167,7 @@ public class MultiplayerGame extends Application {
 		
 		left2 = new AnimationTimer() {
 			public void handle(long now) {
-				if (player2.getTranslateX() <= 427) {
+				if (player2.getTranslateX() <= 418) {
 					left2.stop();
 				}
 				else {
@@ -156,30 +182,47 @@ public class MultiplayerGame extends Application {
 	public void bullet() {
 		Circle circle = new Circle();
 		circle.setRadius(5);
-		circle.setCenterX(player1.getTranslateX() + 65);
-		circle.setCenterY(player1.getTranslateY() + 20);
+		circle.setTranslateX(player1.getTranslateX() + 50);
+		circle.setTranslateY(player1.getTranslateY() + 20);
 		circle.setFill(Color.DODGERBLUE);
 		
 		root.getChildren().add(circle);
-		
+
 		bulletMotion = new AnimationTimer() {
 			public void handle(long now) {
 				circle.setTranslateX(circle.getTranslateX() + bulletSpeed);
+				if (circle.getTranslateX() > player2.getTranslateX()
+					&& circle.getTranslateX() < player2.getTranslateX() + 40
+					&& circle.getTranslateY() > player2.getTranslateY() - 10
+					&& circle.getTranslateY() < player2.getTranslateY() + 50
+					&& playable) {
+					healthBar2.health.setWidth(healthBar2.health.getWidth() - 8);
+					healthBar2.health.setTranslateX(healthBar2.health.getTranslateX() - 4);
+					root.getChildren().remove(circle);
+					this.stop();
+				}
+				
+				if (circle.getTranslateX() > 800) {
+					root.getChildren().remove(circle);
+				}
+				
 			}
 		};
 		
 		bulletMotion.start();
 		
-		if (circle.getTranslateX() > 800) {
-			root.getChildren().remove(circle);
+		if (healthBar2.health.getWidth() < 1) {
+			WinningText blueWin = new WinningText("Blue", Color.BLUE);
+			root.getChildren().add(blueWin);
+			playable = false;
 		}
 	}
 	
 	public void bullet2() {
 		Circle circle = new Circle();
 		circle.setRadius(5);
-		circle.setCenterX(player2.getTranslateX() - 25);
-		circle.setCenterY(player2.getTranslateY() + 20);
+		circle.setTranslateX(player2.getTranslateX() - 10);
+		circle.setTranslateY(player2.getTranslateY() + 20);
 		circle.setFill(Color.RED);
 		
 		root.getChildren().add(circle);
@@ -187,27 +230,80 @@ public class MultiplayerGame extends Application {
 		bulletMotion = new AnimationTimer() {
 			public void handle(long now) {
 				circle.setTranslateX(circle.getTranslateX() - bulletSpeed);
+				if (circle.getTranslateX() < player1.getTranslateX() + 40
+					&& circle.getTranslateX() > player1.getTranslateX()
+					&& circle.getTranslateY() > player1.getTranslateY() - 10
+					&& circle.getTranslateY() < player1.getTranslateY() + 50
+					&& playable) {
+					healthBar1.health.setWidth(healthBar1.health.getWidth() - 8);
+					healthBar1.health.setTranslateX(healthBar1.health.getTranslateX() - 4);
+					root.getChildren().remove(circle);
+					this.stop();
+				}
+				
+				if (circle.getTranslateX() < 0) {
+					root.getChildren().remove(circle);
+				}
+				
 			}
 		};
 		
 		bulletMotion.start();
 		
-		if (circle.getTranslateX() > 800) {
-			bulletMotion.stop();
+		if (healthBar1.health.getWidth() < 1) {
+			WinningText redWin = new WinningText("Red", Color.RED);
+			root.getChildren().add(redWin);
+			playable = false;
 		}
 	}
 	
 	private class Player extends StackPane {
 		Rectangle player = new Rectangle(40, 40);
-		Rectangle blaster = new Rectangle(25, 20);
+		Rectangle blaster = new Rectangle(15, 20);
 		public Player(String name) {
 			Text text = new Text(name);
 			text.setFill(Color.WHITE);
 			
 			blaster.setFill(Color.GREY);
-			blaster.setTranslateY(player.getLayoutY());
 			
 			getChildren().addAll(player, text, blaster);
+		}
+	}
+	
+	private class HealthBar extends StackPane {
+		Rectangle back = new Rectangle(200, 25);
+		Rectangle health = new Rectangle(198, 23);
+		public HealthBar(Color color) {
+			back.setFill(Color.GREY);
+			back.setStroke(Color.WHITE);
+			back.setStrokeWidth(2);
+			health.setFill(color);
+			
+			getChildren().addAll(back, health);
+		}
+	}
+	
+	private class WinningText extends StackPane{
+		private double fontSize = 1;
+		public WinningText(String winner, Color color) {
+			setPrefSize(800, 600);
+			Text text = new Text(winner + " Wins!");
+			text.setFill(color);
+			text.setStroke(Color.WHITE);
+			text.setStrokeWidth(2);
+			
+			getChildren().add(text);
+			
+			winAnimation = new AnimationTimer() {
+				public void handle(long now) {
+					text.setFont(Font.font("NextGames", fontSize));
+					fontSize += 1.5;
+					if (fontSize > 75) {
+						winAnimation.stop();
+					}
+				}
+			};
+			winAnimation.start();
 		}
 	}
 	
@@ -245,12 +341,12 @@ public class MultiplayerGame extends Application {
 			}
 			
 			//Bullet for player1
-			if (event.getCode().equals(KeyCode.SPACE)) {
+			if (event.getCode().equals(KeyCode.SPACE) && playable) {
 				bullet();
 			}
 			
 			//Bullet for player2
-			if (event.getCode().equals(KeyCode.ENTER)) {
+			if (event.getCode().equals(KeyCode.ENTER) && playable) {
 				bullet2();
 			}
 		});
