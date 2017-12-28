@@ -4,11 +4,12 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -19,11 +20,13 @@ public class Game extends Application {
 	
 	Pane root = new Pane();
 	
-	private Player player1 = new Player("Dan");
-	private Player player2 = new Player("Irene");
+	private Player player1 = new Player();
+	private Player player2 = new Player();
 	
 	private HealthBar healthBar1 = new HealthBar(Color.LIME);
 	private HealthBar healthBar2 = new HealthBar(Color.LIME);
+	
+	private int healthDec = 6;
 	
 	private AnimationTimer up;
 	private AnimationTimer down;
@@ -43,6 +46,10 @@ public class Game extends Application {
 	
 	AnimationTimer winAnimation;
 	
+	ImageView pause;
+	
+	private boolean winStatus = false;
+	
 	private boolean playable = true;
 	
 	public Parent createContent() {
@@ -50,15 +57,13 @@ public class Game extends Application {
 		
 		Rectangle background = new Rectangle(800, 600);
 	
-		player1.player.setFill(Color.DODGERBLUE);
-		player1.setTranslateY(300 - player1.getHeight() / 2);
-		player1.setTranslateX(50);
-		player1.blaster.setTranslateX(player1.player.getTranslateX() + 27);
+		player1.setTranslateY(267.5);
+		player1.setTranslateX(0);
+		player1.plane.setRotate(90);
 		
-		player2.player.setFill(Color.RED);
-		player2.setTranslateY(300 - player2.getHeight() / 2);
-		player2.setTranslateX(710);
-		player2.blaster.setTranslateX(player2.player.getTranslateX() - 28);
+		player2.setTranslateY(267.5);
+		player2.setTranslateX(735);
+		player2.plane.setRotate(270);
 		
 		healthBar1.setTranslateX(100);
 		healthBar1.setTranslateY(25);
@@ -72,21 +77,27 @@ public class Game extends Application {
 		healthText2.setFill(Color.WHITE);
 		healthText1.setFont(Font.font(18));
 		healthText2.setFont(Font.font(18));
-		healthText2.setFill(Color.WHITE);
 		healthText1.setX(30);
 		healthText1.setY(43);
 		healthText2.setX(430);
 		healthText2.setY(43);
 		
-		Line line = new Line();
-		line.setStartX(400);
-		line.setStartY(0);
-		line.setEndX(400);
-		line.setEndY(600);
+		Line line = new Line(400, 0, 400, 600);
 		line.setStrokeWidth(5);
 		line.setStroke(Color.WHITE);
 		
-		root.getChildren().addAll(background, healthBar1, healthBar2, healthText1, healthText2, player1, player2, line);
+		Rectangle blueTeam = new Rectangle(400, 600);
+		blueTeam.setFill(Color.BLUE);
+		blueTeam.setTranslateX(0);
+		blueTeam.setTranslateY(0);
+		
+		Rectangle redTeam = new Rectangle(400, 600);
+		redTeam.setFill(Color.RED);
+		redTeam.setTranslateX(400);
+		redTeam.setTranslateY(0);
+		
+		root.getChildren().addAll(
+				background, blueTeam, redTeam, healthBar1, healthBar2, healthText1, healthText2, player1, player2, line);
 		
 		up = new AnimationTimer() {
 			public void handle(long now) {
@@ -101,7 +112,7 @@ public class Game extends Application {
 		
 		down = new AnimationTimer() {
 			public void handle(long now) {
-				if (player1.getTranslateY() >= 560) {
+				if (player1.getTranslateY() >= 540) {
 					down.stop();
 				}
 				else {
@@ -112,7 +123,7 @@ public class Game extends Application {
 		
 		right = new AnimationTimer() {
 			public void handle(long now) {
-				if (player1.getTranslateX() >= 342) {
+				if (player1.getTranslateX() >= 335) {
 					right.stop();
 				}
 				else {
@@ -145,7 +156,7 @@ public class Game extends Application {
 		
 		down2 = new AnimationTimer() {
 			public void handle(long now) {
-				if (player2.getTranslateY() >= 560) {
+				if (player2.getTranslateY() >= 540) {
 					down2.stop();
 				}
 				else {
@@ -156,7 +167,7 @@ public class Game extends Application {
 		
 		right2 = new AnimationTimer() {
 			public void handle(long now) {
-				if (player2.getTranslateX() >= 760) {
+				if (player2.getTranslateX() >= 735) {
 					right2.stop();
 				}
 				else {
@@ -167,7 +178,7 @@ public class Game extends Application {
 		
 		left2 = new AnimationTimer() {
 			public void handle(long now) {
-				if (player2.getTranslateX() <= 418) {
+				if (player2.getTranslateX() <= 400) {
 					left2.stop();
 				}
 				else {
@@ -176,34 +187,41 @@ public class Game extends Application {
 			}
 		};
 		
+		pause = new ImageView(new Image("file:///Users/Danpark/Downloads/pausebutton.png"));
+		pause.setFitHeight(200);
+		pause.setFitWidth(200);
+		pause.setTranslateX(300);
+		pause.setTranslateY(200);
+		
 		return root;
 	}
 	
 	public void bullet() {
-		Circle circle = new Circle();
-		circle.setRadius(5);
-		circle.setTranslateX(player1.getTranslateX() + 50);
-		circle.setTranslateY(player1.getTranslateY() + 20);
-		circle.setFill(Color.DODGERBLUE);
+		Rectangle bul = new Rectangle(10, 5);
+		bul.setTranslateX(player1.getTranslateX() + 55);
+		bul.setTranslateY(player1.getTranslateY() + 27.5);
+		bul.setFill(Color.WHITE);
 		
-		root.getChildren().add(circle);
+		root.getChildren().add(bul);
 
 		bulletMotion = new AnimationTimer() {
 			public void handle(long now) {
-				circle.setTranslateX(circle.getTranslateX() + bulletSpeed);
-				if (circle.getTranslateX() > player2.getTranslateX()
-					&& circle.getTranslateX() < player2.getTranslateX() + 40
-					&& circle.getTranslateY() > player2.getTranslateY() - 10
-					&& circle.getTranslateY() < player2.getTranslateY() + 50
+				if (playable) {
+					bul.setTranslateX(bul.getTranslateX() + bulletSpeed);
+				}
+				if (bul.getTranslateX() > player2.getTranslateX() + 13
+					&& bul.getTranslateX() < player2.getTranslateX() + 40
+					&& bul.getTranslateY() > player2.getTranslateY() - 10
+					&& bul.getTranslateY() < player2.getTranslateY() + 65
 					&& playable) {
-					healthBar2.health.setWidth(healthBar2.health.getWidth() - 8);
-					healthBar2.health.setTranslateX(healthBar2.health.getTranslateX() - 4);
-					root.getChildren().remove(circle);
+					healthBar2.health.setWidth(healthBar2.health.getWidth() - healthDec);
+					healthBar2.health.setTranslateX(healthBar2.health.getTranslateX() - healthDec / 2);
+					root.getChildren().remove(bul);
 					this.stop();
 				}
 				
-				if (circle.getTranslateX() > 800) {
-					root.getChildren().remove(circle);
+				if (bul.getTranslateX() > 800) {
+					root.getChildren().remove(bul);
 				}
 				
 			}
@@ -215,34 +233,36 @@ public class Game extends Application {
 			WinningText blueWin = new WinningText("Blue", Color.BLUE);
 			root.getChildren().add(blueWin);
 			playable = false;
+			winStatus = true;
 		}
 	}
 	
 	public void bullet2() {
-		Circle circle = new Circle();
-		circle.setRadius(5);
-		circle.setTranslateX(player2.getTranslateX() - 10);
-		circle.setTranslateY(player2.getTranslateY() + 20);
-		circle.setFill(Color.RED);
+		Rectangle bul = new Rectangle(10, 5);
+		bul.setTranslateX(player2.getTranslateX());
+		bul.setTranslateY(player2.getTranslateY() + 28);
+		bul.setFill(Color.WHITE);
 		
-		root.getChildren().add(circle);
+		root.getChildren().add(bul);
 		
 		bulletMotion = new AnimationTimer() {
 			public void handle(long now) {
-				circle.setTranslateX(circle.getTranslateX() - bulletSpeed);
-				if (circle.getTranslateX() < player1.getTranslateX() + 40
-					&& circle.getTranslateX() > player1.getTranslateX()
-					&& circle.getTranslateY() > player1.getTranslateY() - 10
-					&& circle.getTranslateY() < player1.getTranslateY() + 50
+				if (playable) {
+					bul.setTranslateX(bul.getTranslateX() - bulletSpeed);
+				}
+				if (bul.getTranslateX() < player1.getTranslateX() + 40
+					&& bul.getTranslateX() > player1.getTranslateX()
+					&& bul.getTranslateY() > player1.getTranslateY() - 10
+					&& bul.getTranslateY() < player1.getTranslateY() + 65
 					&& playable) {
-					healthBar1.health.setWidth(healthBar1.health.getWidth() - 8);
-					healthBar1.health.setTranslateX(healthBar1.health.getTranslateX() - 4);
-					root.getChildren().remove(circle);
+					healthBar1.health.setWidth(healthBar1.health.getWidth() - healthDec);
+					healthBar1.health.setTranslateX(healthBar1.health.getTranslateX() - healthDec / 2);
+					root.getChildren().remove(bul);
 					this.stop();
 				}
 				
-				if (circle.getTranslateX() < 0) {
-					root.getChildren().remove(circle);
+				if (bul.getTranslateX() < 0) {
+					root.getChildren().remove(bul);
 				}
 				
 			}
@@ -254,19 +274,17 @@ public class Game extends Application {
 			WinningText redWin = new WinningText("Red", Color.RED);
 			root.getChildren().add(redWin);
 			playable = false;
+			winStatus = true;
 		}
 	}
 	
 	private class Player extends StackPane {
-		Rectangle player = new Rectangle(40, 40);
-		Rectangle blaster = new Rectangle(15, 20);
-		public Player(String name) {
-			Text text = new Text(name);
-			text.setFill(Color.WHITE);
+		ImageView plane = new ImageView(new Image("file:///Users/Danpark/Downloads/Aircraft.gif"));
+		public Player() {
+			plane.setFitWidth(65);
+			plane.setFitHeight(60);
 			
-			blaster.setFill(Color.GREY);
-			
-			getChildren().addAll(player, text, blaster);
+			getChildren().add(plane);
 		}
 	}
 	
@@ -283,7 +301,7 @@ public class Game extends Application {
 		}
 	}
 	
-	private class WinningText extends StackPane{
+	private class WinningText extends StackPane {
 		private double fontSize = 1;
 		public WinningText(String winner, Color color) {
 			setPrefSize(800, 600);
@@ -313,41 +331,60 @@ public class Game extends Application {
 		
 		primaryStage.getScene().setOnKeyPressed(event -> {
 			//Player 1
-			if (event.getCode().equals(KeyCode.W)) {
+			if (event.getCode().equals(KeyCode.W) && playable) {
 				up.start();
 			}
-			if (event.getCode().equals(KeyCode.S)) {
+			if (event.getCode().equals(KeyCode.S) && playable) {
 				down.start();
 			}
-			if (event.getCode().equals(KeyCode.D)) {
+			if (event.getCode().equals(KeyCode.D) && playable) {
 				right.start();
 			}
-			if (event.getCode().equals(KeyCode.A)) {
+			if (event.getCode().equals(KeyCode.A) && playable) {
 				left.start();
 			}
 			
 			//Player 2
-			if (event.getCode().equals(KeyCode.UP)) {
+			if (event.getCode().equals(KeyCode.UP) && playable) {
 				up2.start();
 			}
-			if (event.getCode().equals(KeyCode.DOWN)) {
+			if (event.getCode().equals(KeyCode.DOWN) && playable) {
 				down2.start();
 			}
-			if (event.getCode().equals(KeyCode.RIGHT)) {
+			if (event.getCode().equals(KeyCode.RIGHT) && playable) {
 				right2.start();
 			}
-			if (event.getCode().equals(KeyCode.LEFT)) {
+			if (event.getCode().equals(KeyCode.LEFT) && playable) {
 				left2.start();
 			}
 			
 			//Bullet for player1
-			if (event.getCode().equals(KeyCode.SPACE) && playable) {
+			if (event.getCode().equals(KeyCode.V) && playable) {
 				bullet();
 			}
 			
-			//Bullet for player2
+			//Bullet for player22	
 			if (event.getCode().equals(KeyCode.ENTER) && playable) {
 				bullet2();
+			}
+			
+			if (event.getCode().equals(KeyCode.SPACE)) {
+				if (!winStatus) {
+				playable = !playable;
+					if (!playable) {
+						try {
+							root.getChildren().add(pause);
+							up.stop(); up2.stop();
+							right.stop(); right2.stop();
+							down.stop(); down2.stop();
+							left.stop(); left2.stop();
+						}
+						catch(Exception e){}
+					}
+					else {
+						root.getChildren().remove(pause);
+					}
+				}
 			}
 		});
 		
